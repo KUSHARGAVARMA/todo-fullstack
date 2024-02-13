@@ -1,22 +1,91 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios';
+import Updatetodo from '../components/Updatetodo';
 const App=() =>{
   const [formData , setFormData] = useState({
-    label:"",
+    title:"",
     description:"",
     completed:false
   })
+  const [todoList , setTodoList] = useState([])
   const handleChange=(e)=>{
     console.log(e.target.checked);
     const {name, value,checked,type}= e.target;
     const updatedValue = type === 'checkbox'?checked:value ;
+    // send data to api 
     setFormData((prevData)=>({...prevData,[name]:updatedValue}));
-  }
+  
+  };
+  const sendDataToApi = async (data) => {
+    try {
+      const response = await axios.post('http://localhost:3001/todo', data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
 
-  const handleSubmit=(e)=>{
+  const getData = async () =>{
+    try{
+      const response = await axios.get('http://localhost:3001/todo');
+      return response;
+    } catch(error){
+      throw error
+    }
+  };
+
+  const onUpdateStatus = (updatedTodoList) => {
+    // Create a copy of the todo list and remove the todo at the specified index
+    // const updatedTodoList = [...todoList];
+    // updatedTodoList.splice(index, 1);
+
+    // Update the todo list in the state
+    setTodoList(updatedTodoList);
+
+    // Make a PUT request to update the server
+    // You need to implement this part based on your API
+    // axios.put('your-api-endpoint', { id: todoList[index].id, completed: true });
+  };
+
+  const handleSubmit=async(e)=>{
     e.preventDefault();
-    console.log("submitted value", formData);
+    console.log("submitted value",typeof formData);
+    setTodoList((prevData)=>([...prevData,formData]));
 
+    try {
+      const response = await sendDataToApi(formData);
+      console.log('API Response:', response.data);
+    } catch (error) {
+      console.error('Error sending data to API:', error);
+    }
   }
+  useEffect(() => {
+  
+    const fetchData = async () => {
+      try {
+        const response = await getData();
+        console.log('API Response:', response.data.result);
+        const result = response.data.result;
+
+  
+        // Ensure result is an array before updating the state
+   
+          setTodoList(result);
+        
+      } catch (error) {
+        console.error('Error fetching data from API:', error);
+      }
+    };
+  
+    fetchData(); // Call the async function
+
+  
+    // get the list of todos
+    console.log(todoList);
+ 
+  }, []);
+  
+
 //   const createTodo= zod.object({
 //     title:zod.string(),
 //     description:zod.string(),
@@ -28,10 +97,10 @@ const App=() =>{
 const formStyle = {
   display: 'flex',
   flexDirection: 'column',
-  // alignItems:'center',
+  // // alignItems:'center',
   justifyContent: 'space-between',
   maxWidth: '300px',
-  margin: 'auto',
+  // margin: 'auto',
   padding: '20px',
   border: '1px solid #ccc',
   borderRadius: '5px',
@@ -59,20 +128,19 @@ const buttonStyle = {
     <div>
       <h2>Todo Application</h2>
     </div>
-     <div><h3>Add Task</h3>
-    </div>
+
 
     <form style={formStyle} onSubmit={handleSubmit}>
-     <label style={labelStyle} htmlFor='label'>
+     <label style={labelStyle}>
       Title </label>
      <input style={inputStyle}
        type="text" 
-       name='label'
-       value={formData.label} 
+       name='title'
+       value={formData.title} 
        onChange={handleChange} 
      />
   
-   <label style={labelStyle} htmlFor='description'>
+   <label style={labelStyle} >
       Description:   </label>
 
      <input style={inputStyle}
@@ -82,18 +150,12 @@ const buttonStyle = {
        onChange={handleChange} 
      />
 
-   <label style={labelStyle} htmlFor='completed'>
-      
-     <input style={inputStyle}
-       type="checkbox" 
-       name='completed'
-       checked={formData.completed}
-       onChange={handleChange} 
-     />Completed</label>
-   
+
     <button style={buttonStyle}
       type='submit'>Submit</button>
     </form>
+    <Updatetodo todoList={todoList} onUpdateStatus={onUpdateStatus}/>
+
   </>
   );
 

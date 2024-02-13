@@ -1,7 +1,10 @@
-const express = require("express");
+const express = require('express')
 const { createTodo, updateTodo } = require("./types");//for validation 
 const app = express();//instantiating the express lib
-app.use(express.json);// using the middleware
+app.use(express.json())// using the middleware
+
+const cors = require('cors')
+app.use(cors());
 const { todo } =require("./database");
 
 // what do i expect from my user to send 
@@ -34,15 +37,16 @@ app.post("/todo",async function(req,res){
 
 })
 app.get("/todo",async function(req,res){
-    const createPayload = req.body;
+    console.log("req");
+    // const createPayload = req.body;
 
-    const parsedPayload = updateTodo.safeParse(createPayload);
-    if(!parsedPayload.success){
-        res.status(411).json ({
-            msg: "You sent the wrong code"
-        })
-        return;
-    }
+    // const parsedPayload = updateTodo.safeParse(createPayload);
+    // if(!parsedPayload.success){
+    //     res.status(411).json ({
+    //         msg: "You sent the wrong code"
+    //     })
+    //     return;
+    // }
     // get data from the database
 
     const result = await todo.find({})
@@ -53,23 +57,21 @@ app.get("/todo",async function(req,res){
 })
 
 app.put("/completed",async function(req,res){
-    const updatedPayload = req.body;
-    const parsedUpPayload = updatePayload.safeParse(updatedPayload);
-
-    if(!parsedUpPayload.success){
-        res.status(411).json({
-            msg:"You sent the wrong id datatype"
-        })
-    }
-     // put in mongodb
+    
     const result = await todo.update({
-        _id : req.body.id
+        _id : req.params
     },{
         completed:true
     })
+    // put in mongodb
+
+
     // response
     res.json({
-        msg:"Todo updated successfully"
+        msg:"Todo updated successfully "
     })
 
 })
+app.listen(3001, () => {
+    console.log(`Server is running on port 3001`);
+  });
