@@ -26,13 +26,15 @@ app.post("/todo",async function(req,res){
         return;
     }
     // put it in mongodb 
-    await todo.create({
+    const result = await todo.create({
         title: createPayload.title,
         description: createPayload.description,
         completed : createPayload.completed
     })
     res.json({
-        msg:"Todo Is Created"
+        msg:"Todo Is Created",
+        result:result
+
     } )
 
 })
@@ -56,10 +58,10 @@ app.get("/todo",async function(req,res){
 
 })
 
-app.put("/completed",async function(req,res){
+app.put("/completed/:todo_id",async function(req,res){
     
-    const result = await todo.update({
-        _id : req.params
+    const result = await todo.updateOne({
+        _id : req.params.todo_id
     },{
         completed:true
     })
@@ -68,9 +70,18 @@ app.put("/completed",async function(req,res){
 
     // response
     res.json({
-        msg:"Todo updated successfully "
+        msg:"Todo updated successfully ",
+        
     })
 
+})
+
+app.delete("/todo/:todo_id",async function(req,res){
+
+    const result = await todo.deleteOne({_id : req.params.todo_id})
+    res.json({
+        msg:"Deleted"
+    })
 })
 app.listen(3001, () => {
     console.log(`Server is running on port 3001`);
